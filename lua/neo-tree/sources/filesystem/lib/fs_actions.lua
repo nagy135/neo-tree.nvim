@@ -119,13 +119,14 @@ end
 
 --- Create a new directory
 M.create_directory = function(in_directory, callback)
-  inputs.input('Enter name for new directory:', "", function(name)
-    if not name or name == "" then
+  local base = vim.fn.fnamemodify(in_directory .. utils.path_separator, ":~")
+  inputs.input('Enter name for new directory:', base, function(destination)
+    if not destination or destination == base then
       return
     end
-    local destination = in_directory .. utils.path_separator .. name
+    destination = vim.fn.fnamemodify(destination, ":p")
     if loop.fs_stat(destination) then
-      log.warn("File already exists")
+      log.warn("Directory already exists")
       return
     end
 
@@ -140,17 +141,18 @@ M.create_directory = function(in_directory, callback)
         end
       end)
     end
-  end)
+  end, nil, "dir")
 
 end
 
 --- Create Node
 M.create_node = function(in_directory, callback)
-  inputs.input('Enter name for new file or directory (dirs end with a "/"):', "", function(name)
-    if not name or name == "" then
+  local base = vim.fn.fnamemodify(in_directory .. utils.path_separator, ":~")
+  inputs.input('Enter name for new file or directory (dirs end with a "/"):', base, function(destination)
+    if not destination or destination == base then
       return
     end
-    local destination = in_directory .. utils.path_separator .. name
+    destination = vim.fn.fnamemodify(destination, ":p")
     if loop.fs_stat(destination) then
       log.warn("File already exists")
       return
@@ -163,7 +165,7 @@ M.create_node = function(in_directory, callback)
       local open_mode = loop.constants.O_CREAT + loop.constants.O_WRONLY + loop.constants.O_TRUNC
       local fd = loop.fs_open(destination, "w", open_mode)
       if not fd then
-        api.nvim_err_writeln("Could not create file " .. name)
+        api.nvim_err_writeln("Could not create file " .. destination)
         return
       end
       loop.fs_chmod(destination, 420)
@@ -178,7 +180,7 @@ M.create_node = function(in_directory, callback)
         end
       end)
     end
-  end)
+  end, nil, "file")
 end
 
 -- Delete Node
